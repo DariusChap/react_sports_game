@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React Sports Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script crossorigin src="https://unpkg.com/react@16/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+    <script crossorigin src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+
+    <script type="text/babel">
+        const root = document.querySelector("#root")
+
+        function Team(props) {
+            let shotPercentageDiv
+
+
+            if (props.stats.shots) {
+                const shotPercentage = Math.round((props.stats.points / props.stats.shots) * 100)
+                shotPercentageDiv = (
+                    <div>
+                        <strong>Shooting %: {shotPercentage} </strong>
+                    </div>
+
+                )
+            }
+
+            return (
+                <div className="Team">
+                    <h2>{props.name}</h2>
+
+                    <div className="Indentity">
+                        <img src={props.logo} alt={props.name} />
+                    </div>
+
+                    <div>
+                        <strong>Shots:</strong> {props.stats.shots}
+                    </div>
+
+                    <div>
+                        <strong>Points:</strong> {props.stats.points}
+                    </div>
+
+                    {shotPercentageDiv}
+
+
+                    <button onClick={props.shotHandler}>Shoot</button>
+                </div>
+            )
+
+        }
+
+        function ScoreBoard(props) {
+            return (
+                <div className="ScoreBoard">
+                <div className="teamStats">
+                    <h3>AWAY</h3>
+                    <h3>{props.awayTeamStats.points}</h3>
+                </div>
+
+                <h3>SCOREBOARD</h3>
+
+                <div className="teamStats">
+                    <h3>HOME</h3>
+                    <h3>{props.homeTeamStats.points}</h3>
+                </div>
+            </div>
+            )
+        }
+
+        class Game extends React.Component {
+            constructor(props) {
+                super(props)
+
+                this.state = {
+                    resetCount: 0,
+                    homeTeamStats: {
+                        shots: 0,
+                        points: 0
+
+                    },
+                    awayTeamStats: {
+                        shots: 0,
+                        points: 0
+
+                    }
+                }
+                this.shotSound = new Audio('http://soundfxcenter.com/sports/basketball/8d82b5_Basketball_Bounce_Sound_Effect.mp3')
+                this.pointSound = new Audio('http://soundfxcenter.com/sports/basketball/8d82b5_Basketball_Net_Swish_Sound_Effect.mp3')
+                this.resetSound = new Audio('http://soundfxcenter.com/video-games/pacman/8d82b5_Pacman_Eating_Cherry_Sound_Effect.mp3')
+                // Sounds from soundfxcenter.com
+            }
+            shoot = (team) => {
+                const teamStatsKey = `${team}TeamStats`
+                let points = this.state[teamStatsKey].points
+                this.shotSound.play()
+
+
+                if (Math.random() > 0.5) {
+                    points += 1
+
+                    setTimeout(() => {
+                        this.pointSound.play()
+                    }, 100);
+
+
+                }
+
+
+                this.setState((state, props) => ({
+                    [teamStatsKey]: {
+                        shots: state[teamStatsKey].shots + 1, points
+                    }
+                }))
+            }
+
+            resetGame = () => {
+                this.setState((state, props) => ({
+                   resetCount: state.resetCount + 1, 
+                   homeTeamStats: {
+                       shots: 0,
+                       points: 0
+                   },
+                   awayTeamStats: {
+                       shots: 0,
+                       points: 0
+                   } 
+                }));
+                    this.resetSound.play()
+                    
+            }
+
+            render() {
+                return (
+                    <div className="Game">
+                    <ScoreBoard 
+                    awayTeamStats={this.state.awayTeamStats}
+                    homeTeamStats={this.state.homeTeamStats}
+                    
+                    />
+                        <h1>Welcome to {this.props.venue}</h1>
+                        <div className="stats">
+                            <Team name={this.props.awayTeam.name}
+                                logo={this.props.awayTeam.logoSrc}
+                                stats={this.state.awayTeamStats}
+                                shotHandler={() => this.shoot('away')}
+                            />
+
+                            <div className="versus">
+                                <h2>VS</h2>
+                                <div>
+                                    <strong>Resets</strong> {this.state.resetCount}
+                                    <button onClick={this.resetGame}>Reset Game</button>
+                                </div>
+                            </div>
+
+                            <Team name={this.props.homeTeam.name}
+                                logo={this.props.homeTeam.logoSrc}
+                                stats={this.state.homeTeamStats}
+                                shotHandler={() => this.shoot('home')}
+                            />
+                        </div>
+                    </div>
+                )
+
+            }
+
+        }
+
+
+        function App(props) {
+            const blockers = {
+                name: 'Strong Blockers',
+                logoSrc: 'https://cdn.vox-cdn.com/thumbor/y98RYDGUzSI9OEFkCpQcQ81Ka_M=/138x0:2362x1668/1200x800/filters:focal(138x0:2362x1668)/cdn.vox-cdn.com/uploads/chorus_image/image/55908689/1_2FLpMCK4zgwKMQLTCWsMMg.0.jpeg'
+            }
+
+            const stealers = {
+                name: 'Smooth Stealers',
+                logoSrc: 'https://s.hdnux.com/photos/66/36/77/14282713/3/920x920.jpg'
+            }
+
+            const shooters = {
+                name: 'Lethal Shooters',
+                logoSrc: 'https://i.pinimg.com/originals/c7/8e/bc/c78ebc930effbd2c1ee77b81fa5c8536.jpg'
+            }
+
+            const dunkers = {
+                name: 'High Jumpers',
+                logoSrc: 'https://media.gq.com/photos/5ade0d71f2061729bfb572da/master/pass/NBA-Street-Vol-2-GQ-April-2018-042318.jpg'
+                // Images from google.com
+
+            }
+            return (
+                <div className="App">
+                    <Game
+                        venue="Hardwood War"
+                        homeTeam={stealers}
+                        awayTeam={blockers}
+                    />
+
+                    <Game
+                        venue="Mamba Arena"
+                        homeTeam={shooters}
+                        awayTeam={dunkers}
+                    />
+                </div>
+            )
+        }
+
+
+
+
+
+
+
+
+
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+
+
+    </script>
+</body>
+
+</html>
